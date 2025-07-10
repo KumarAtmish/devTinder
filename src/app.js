@@ -9,7 +9,6 @@ app.use(express.json());
 
 app.post("/signup", async(req, res) => {
     // Create a new instance or the User model
-    console.log(req.body)
     let user = new User(req.body);
 
     try{
@@ -18,6 +17,29 @@ app.post("/signup", async(req, res) => {
     } catch(err){
         res.status(400).send('Error saving the user:' + err.message)
     }
+})
+
+app.get('/user', async(req, res) => {
+    let userEmail = req.body.emailId;
+
+    try{
+        let user = await User.findOne({emailId:userEmail})
+        res.status(200).send(user)
+    }catch(err){
+        res.status(400).send('Something went wrong');
+    }
+})
+
+app.get('/feed', async(req, res) => {
+
+    try{
+        // let user = await User.find({emailId: userEmail})
+        let user = await User.find({})
+        res.status(200).send(user)
+    }catch(err) {
+        res.status(400).send('Something went wrong');
+    }
+    
 })
 
 connectDB()
