@@ -1,10 +1,15 @@
 const express = require('express')
 
+const connectDB = require('./config/database')
+
 const app = express();
 
-app.use('/', (req, res) => {
-    res.send('hello')
-})
-app.listen(7777, () => {
-    console.log("server started on port 7777")
+connectDB()
+.then(() => {
+    console.log('Database connection established!!!')
+    app.listen(7777, () =>{
+        console.log("server started on port 7777")
+    })
+}).catch(err =>{
+    console.log('Database connection Failed')
 })
