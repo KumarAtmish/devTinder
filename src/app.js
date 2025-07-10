@@ -5,16 +5,12 @@ const User = require('./models/user');
 
 const app = express();
 
+app.use(express.json());
+
 app.post("/signup", async(req, res) => {
     // Create a new instance or the User model
-    let user = new User({
-        firstName: 'ram',
-        lastName: 'kumar',
-        emailId: 'ram@gmail.com',
-        password:'Ram@123',
-        age: 24,
-        gender: 'male',
-    });
+    console.log(req.body)
+    let user = new User(req.body);
 
     try{
         await user.save();
@@ -22,11 +18,6 @@ app.post("/signup", async(req, res) => {
     } catch(err){
         res.status(400).send('Error saving the user:' + err.message)
     }
-})
-
-app.get("/signup", async(req, res) => {
-    
-    // res.status(200).send('User added successfully')
 })
 
 connectDB()
