@@ -48,10 +48,25 @@ app.patch('/user/:id', async (req, res)=>{
     let userDetails = req.body
 
     try{
-        let user = await User.findByIdAndUpdate(id, userDetails)
+
+        const ALLOWED_UPDATE = ['firstName','lastName', 'about', 'gender', 'age', 'skills']
+        const isUpdateAllowed = Object?.keys(userDetails)?.every((k) => ALLOWED_UPDATE.includes(k));
+
+        if(!isUpdateAllowed){
+            throw new Error('Update data not allowed')
+        }
+
+        if(userDetails?.skills?.length>10){
+            throw new Error('Skills cannot be more than 10')
+        }
+
+        let user = await User.findByIdAndUpdate(id, userDetails, {
+            returnDocument: 'after',
+            runValidators: true,
+        })
         res.status(200).send(user)
     }catch(err){
-        res.status(400).send('Something went wrong');
+        res.status(400).send(err.message);
     }
     
 })
