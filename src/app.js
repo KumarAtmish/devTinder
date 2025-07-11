@@ -42,6 +42,33 @@ app.get('/feed', async(req, res) => {
     
 })
 
+app.patch('/user/:id', async (req, res)=>{
+    console.log(req.params.id)
+    let id = req.params.id
+    let userDetails = req.body
+
+    try{
+        let user = await User.findByIdAndUpdate(id, userDetails)
+        res.status(200).send(user)
+    }catch(err){
+        res.status(400).send('Something went wrong');
+    }
+    
+})
+
+app.delete('/user', async (req, res)=>{
+
+    let userId = req.body.userId;
+
+    try{
+        let user = await User.findByIdAndDelete({_id: userId})
+        res.status(200).send('user deleted')
+    }catch(err){
+        res.status(400).send('Something went wrong');
+    }
+    
+})
+
 connectDB()
 .then(() => {
     console.log('Database connection established!!!')
