@@ -1,21 +1,35 @@
-const authAdmin = (req, res, next) => {
-    const token ='xyz';
-    const isAdminAuth = token === 'xyz'
-    if(!isAdminAuth){
-        res.status(401).send("Admin is not authroized")
-    }else{
+const jwt = require('jsonwebtoken')
+
+const User = require('../models/user')
+
+const authUser = async (req, res, next) => {
+    try{
+        //Read the token from the req cookies
+        const { token } = req.cookies;
+        
+        //Validate the token
+        if(!token){
+            throw new Error('Token is not available')   
+        }
+
+        // verify a token and the secret key
+        let decodeMessage = await jwt.verify(token, 'Dev@Tider$789')
+
+        const { _id } = decodeMessage
+        //Find the user
+
+        let user = await User.findById(_id)
+    
+        if(!user){
+            throw new Error("User not found")
+        }
+
+        req.user = user;
         next();
+
+    }catch(err){
+        res.status(400).send("ERROR : ", err.messsage)
     }
 }
 
-const authUser = (req, res, next) => {
-    const token ='xyz';
-    const isUserAuth = token === 'xyz'
-    if(!isUserAuth){
-        res.status(401).send("User is not authroized")
-    }else{
-        next();
-    }
-}
-
-module.exports= { authAdmin, authUser}
+module.exports= { authUser }

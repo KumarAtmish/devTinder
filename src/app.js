@@ -1,21 +1,74 @@
-const express = require('express')
+const express = require('express');
+const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 
 const connectDB = require('./config/database');
 const User = require('./models/user');
+const { validationSignup } = require('./utils/validation')
+const { authUser } = require('./middleware/auth')
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async(req, res) => {
-    // Create a new instance or the User model
-    let user = new User(req.body);
-
     try{
+
+        // Validation of data
+        validationSignup(req)
+        
+        const { firstName, lastName, emailId, password } = req.body
+        //Encrypt the password
+        const passwordEncrypt = await bcrypt.hash(password, 10)
+
+        // Create a new instance or the User model
+        const user = new User({
+            firstName,
+            lastName,
+            emailId,
+            password: passwordEncrypt
+        })
+
         await user.save();
         res.status(200).send('User added successfully')
     } catch(err){
-        res.status(400).send('Error saving the user:' + err.message)
+        res.status(400).send('ERROR : ' + err.message)
+    }
+})
+
+app.post('/login', async(req, res) =>{
+    try{
+        const {emailId, password} = req.body
+
+        const user = await User.findOne({emailId:emailId})
+        if(!user){
+            throw new Error('Invalid credentials')
+        }
+
+        const passwordValid = await bcrypt.compare(password, user.password)
+        if(passwordValid){
+            // Creating the token and inside that send the user id and adding the secret key
+            let token = jwt.sign({ _id: user._id }, 'Dev@Tider$789', { expiresIn: '7d' });
+
+            // Add the token to the cookie and send the response to the user
+            res.cookie("token",token)
+
+            res.status(200).send('Login Successfull !!')
+        }else{
+            throw new Error('Invalid credentials')
+        }
+    }catch(err){
+        res.status(400).send("ERROR : " + err.message)
+    }
+})
+
+app.get('/profile', authUser, async (req, res) => {
+    try{
+        res.status(200).send(req.user)
+    }catch(err){
+        res.status(400).send("ERROR : ", + err)
     }
 })
 
